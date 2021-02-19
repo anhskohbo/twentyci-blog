@@ -10,16 +10,20 @@
     "production": "mix --production"
   },
   "dependencies": {
+    "@toast-ui/editor": "^2.5.1",
     "axios": "^0.21",
-    "bootstrap": "^4.0.0",
-    "jquery": "^3.2",
+    "bootstrap": "^4.6.0",
+    "jquery": "^3.5",
     "popper.js": "^1.12"
   },
   "devDependencies": {
-    "laravel-mix": "^6.0.6",
-    "lodash": "^4.17.19",
-    "postcss": "^8.1.14",
-    "sass": "^1.15.2",
-    "sass-loader": "^8.0.0"
+    "browser-sync": "^2.26.14",
+    "browser-sync-webpack-plugin": "^2.3.0",
+    "laravel-mix": "^6.0.11",
+    "lodash": "^4.17.20",
+    "postcss": "^8.2.6",
+    "sass": "^1.32.8",
+    "sass-loader": "^11.0.1",
+    "sweetalert2": "^10.15.5"
   }
 }

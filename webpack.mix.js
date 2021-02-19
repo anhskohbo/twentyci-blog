@@ -8,6 +8,7 @@ let mix = require('laravel-mix');
 const externals = {};
 
 mix.js('resources/js/app.js', 'public/js');
+mix.js('resources/js/dashboard.js', 'public/js');
 mix.sass('resources/sass/app.scss', 'public/css');
 
 mix.sourceMaps(true, 'source-map');

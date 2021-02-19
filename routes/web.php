@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\Dashboard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Routing\Router;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,8 +18,18 @@ use Illuminate\Support\Facades\Route;
 
 Auth::routes();
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::group(
+    ['middleware' => 'auth', 'prefix' => 'dashboard', 'as' => 'dashboard.'],
+    function (Router $routes) {
+        $routes->resource('posts', Dashboard\PostsController::class);
+    }
+);
+
+Route::get(
+    '/',
+    function () {
+        return view('welcome');
+    }
+);
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
