@@ -31,11 +31,11 @@ class PostRepositoryTest extends TestCase
         $query = $this->repository->query($user);
 
         $this->assertEquals(
-            'select * from `posts` where (`posts`.`status` = ? or `posts`.`status` = ? and `posts`.`user_id` = ?)',
+            'select * from `posts` where `posts`.`user_id` = ? and (`posts`.`status` = ? or `posts`.`status` = ?)',
             $query->toSql()
         );
 
-        $this->assertEquals(['publish', 'draft', $user->getKey()], $query->getBindings());
+        $this->assertEquals([$user->getKey(), 'publish', 'draft'], $query->getBindings());
     }
 
     public function test_query_with_admin()

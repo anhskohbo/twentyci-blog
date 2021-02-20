@@ -55,6 +55,7 @@ class PostCRUDTest extends TestCase
                 [
                     'title' => 'A great title',
                     'content' => 'content',
+                    'status' => 'draft'
                 ]
             );
 
@@ -71,6 +72,7 @@ class PostCRUDTest extends TestCase
             [
                 'title' => 'A great title',
                 'content' => 'content',
+                'status' => 'draft'
             ]
         )
             ->assertRedirect()
@@ -79,7 +81,24 @@ class PostCRUDTest extends TestCase
         $this->assertDatabaseHas('posts', ['slug' => 'a-great-title']);
     }
 
-    public function test_edit_post_policy_only_author_can_see_their_post()
+    public function test_editor_cannot_publish_a_post()
+    {
+        $this->asEditor();
+
+        $response = $this
+            ->post(
+                route('dashboard.posts.store'),
+                [
+                    'title' => 'The dummy title',
+                    'content' => 'content',
+                    'status' => 'publish'
+                ]
+            );
+
+        $this->assertDatabaseHas('posts', ['title' => 'The dummy title', 'status' => 'draft']);
+    }
+
+    public function test_edit_post_policy_author_can_see_other_posts()
     {
         $author = User::factory()->create(['level' => Group::MEMBER]);
         $post = Post::factory()->create(['user_id' => $author->getKey()]);
@@ -89,6 +108,18 @@ class PostCRUDTest extends TestCase
 
         $this->get(route('dashboard.posts.edit', $post))
             ->assertForbidden();
+    }
+
+    public function test_edit_post_policy_only_author_can_see_their_post()
+    {
+        $author = User::factory()->create(['level' => Group::MEMBER]);
+        $post = Post::factory()->create(['user_id' => $author->getKey()]);
+
+        $this->actingAs($author);
+
+        $this->get(route('dashboard.posts.edit', $post))
+            ->assertOk()
+            ->assertSeeText('Save');
     }
 
     public function test_edit_post_policy_admin_can_see_author_posts()

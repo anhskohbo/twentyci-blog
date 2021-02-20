@@ -28,19 +28,19 @@ class PostRepository extends AbstractRepository
     {
         $query = Post::query();
 
+        // Show posts if they require approval and they are
+        // authored by the current user, or the current user has permission to
+        // approve posts.
+        if ($actor && !$actor->isSuperAdmin()) {
+            $query->where('posts.user_id', $actor->getKey());
+        }
+
         $query->where(
             function (Builder $query) use ($actor) {
                 $query->where('posts.status', Post::STATUS_PUBLISH);
 
                 if ($actor) {
                     $query->orWhere('posts.status', Post::STATUS_DRAFT);
-                }
-
-                // Show posts if they require approval and they are
-                // authored by the current user, or the current user has permission to
-                // approve posts.
-                if ($actor && !$actor->isSuperAdmin()) {
-                    $query->where('posts.user_id', $actor->getKey());
                 }
             }
         );
