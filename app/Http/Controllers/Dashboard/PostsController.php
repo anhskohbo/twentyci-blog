@@ -4,19 +4,68 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Post;
+use App\Repository\PostRepository;
+use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Arr;
 
 class PostsController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * @param Request $request
+     * @return Response|mixed
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $repository = app(PostRepository::class);
+
+        $query = $repository->query(current_user());
+
+        // Hold the filter data.
+        $currentFilters = [];
+
+        $filters = [
+            function ($query) use ($request, &$currentFilters) {
+                $_filters = $request->get('filters');
+
+                if (isset($_filters['created_at']) /*&& is_valid_date($_filters['created_at'])*/) {
+                    try {
+                        $date = Carbon::createFromFormat('Y-m-d', $_filters['created_at']);
+                        $query->whereDate('created_at', '=', $date);
+                        $currentFilters['created_at'] = $date->format('Y-m-d');
+                    } catch (Exception $e) {
+                        // TODO: Catch the exception
+                    }
+                }
+
+                if (isset($_filters['status']) && in_array($_filters['status'], ['draft', 'publish'])) {
+                    $query->where('status', '=', $_filters['status']);
+                    $currentFilters['status'] = $_filters['status'];
+                }
+            },
+        ];
+
+        $orderings = [];
+        if (in_array($sortBy = $request->get('sortBy'), ['id', 'title', 'created_at', 'updated_at'], true)) {
+            $orderings = [$sortBy => strtolower($request->get('sortDirection', 'desc'))];
+        }
+
+        $repository->buildIndexQuery(
+            $query,
+            sanitize_text_field($request->get('term')),
+            $filters,
+            $orderings
+        );
+
+        $posts = $query
+            ->paginate()
+            ->appends($request->only('term', 'filters', 'sortBy', 'sortDirection'));
+
+        return view('dashboard.posts.index', compact('posts', 'currentFilters', 'orderings'));
     }
 
     /**
@@ -47,11 +96,15 @@ class PostsController extends Controller
             [
                 'title' => 'required|max:255',
                 'content' => 'required',
+                'status' => 'required',
             ]
         );
 
         $post = Post::start(sanitize_text_field($values['title']), current_user());
         $post->content = sanitize_textarea_field($values['content']);
+        $post->status = ($values['status'] === 'publish' && current_user()->can('publish', $post))
+            ? Post::STATUS_PUBLISH
+            : Post::STATUS_DRAFT;
 
         $post->saveOrFail();
 
@@ -99,11 +152,15 @@ class PostsController extends Controller
             [
                 'title' => 'required|max:255',
                 'content' => 'required',
+                'status' => 'required',
             ]
         );
 
         $post->title = sanitize_text_field($values['title']);
         $post->content = sanitize_textarea_field($values['content']);
+        $post->status = ($values['status'] === 'publish' && current_user()->can('publish', $post))
+            ? Post::STATUS_PUBLISH
+            : Post::STATUS_DRAFT;
 
         $post->saveOrFail();
 
@@ -124,6 +181,8 @@ class PostsController extends Controller
 
         $post->delete();
 
-        return redirect()->route('dashboard.posts.index');
+        return redirect()
+            ->route('dashboard.posts.index')
+            ->with('success', __('Post Deleted'));
     }
 }

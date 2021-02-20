@@ -5,10 +5,13 @@ namespace Tests\Feature;
 use App\Group;
 use App\Models\Post;
 use App\Models\User;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 class PostCRUDTest extends TestCase
 {
+    use DatabaseTransactions;
+
     public function test_guest_cannot_access_dashboard_page()
     {
         $this->get(route('dashboard.posts.index'))
@@ -99,5 +102,47 @@ class PostCRUDTest extends TestCase
         $this->get(route('dashboard.posts.edit', $post))
             ->assertOK()
             ->assertSeeText('Edit Post');
+    }
+
+    public function test_delete_post_policy_author_can_delete_another_posts()
+    {
+        $author = User::factory()->create(['level' => Group::MEMBER]);
+        $post = Post::factory()->create(['user_id' => $author->getKey()]);
+
+        // Login as another editor.
+        $this->asEditor();
+
+        $this->delete(route('dashboard.posts.destroy', $post))
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('posts', ['id' => $post->getKey()]);
+    }
+
+    public function test_delete_post_policy_only_author_can_delete_their_post()
+    {
+        $author = User::factory()->create(['level' => Group::MEMBER]);
+        $post = Post::factory()->create(['user_id' => $author->getKey()]);
+
+        // Login as another editor.
+        $this->actingAs($author);
+
+        $this->delete(route('dashboard.posts.destroy', $post))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('posts', ['id' => $post->getKey()]);
+    }
+
+    public function test_delete_post_policy_admin_can_delete_author_posts()
+    {
+        $author = User::factory()->create(['level' => Group::ADMINISTRATOR]);
+        $post = Post::factory()->create(['user_id' => $author->getKey()]);
+
+        // Login as another editor.
+        $this->asAdmin();
+
+        $this->delete(route('dashboard.posts.destroy', $post))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('posts', ['id' => $post->getKey()]);
     }
 }

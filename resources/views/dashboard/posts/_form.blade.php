@@ -22,13 +22,21 @@
                         <label for="status">Post status</label>
 
                         <select class="form-control" id="status" name="status">
-                            <option value="pending">Pending Review</option>
-                            <option value="published">Published</option>
+                            <option value="draft" {{ $post->status === 'draft' ? 'selected' : ''}}>Pending Review</option>
+
+                            @if(current_user()->can('publish', $post))
+                                <option value="publish" {{ $post->status === 'publish' ? 'selected' : ''}}>Published</option>
+                            @endif
                         </select>
                     </p>
 
-                    @if($post->id)
-                        <button class="btn btn-primary btn-block">{{ __('Delete') }}</button>
+                    @if($post->id && current_user()->can('delete', $post))
+                        <button
+                            type="button"
+                            class="btn btn-danger btn-block delete-action"
+                            data-action="{{ route('dashboard.posts.destroy', $post) }}">
+                            {{ __('Delete') }}
+                        </button>
                     @endif
 
                     <button class="btn btn-primary btn-block">{{ __('Save') }}</button>

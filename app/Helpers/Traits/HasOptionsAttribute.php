@@ -2,8 +2,8 @@
 
 namespace App\Helpers\Traits;
 
+use App\Helpers\OptionsAttributes;
 use Illuminate\Database\Eloquent\Builder;
-use System\Database\Helpers\OptionsAttributes;
 
 /**
  * Trait HasOptionsAttribute

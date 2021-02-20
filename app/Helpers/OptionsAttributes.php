@@ -1,6 +1,6 @@
 <?php
 
-namespace System\Database\Helpers;
+namespace App\Helpers;
 
 use Countable;
 use ArrayAccess;

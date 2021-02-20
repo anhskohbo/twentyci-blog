@@ -15,8 +15,8 @@
     <div id="app">
         <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
             <div class="container">
-                <a class="navbar-brand" href="{{ url('/') }}">
-                    {{ config('app.name', 'Laravel') }}
+                <a class="navbar-brand" href="{{ url('/dashboard') }}">
+                    {{ config('app.name', 'Blog') }}
                 </a>
 
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
@@ -25,14 +25,16 @@
 
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav mr-auto">
-
+                        <li class="nav-item">
+                            <a class="nav-link" href="/dashboard/posts">Posts</a>
+                        </li>
                     </ul>
 
                     <ul class="navbar-nav ml-auto">
-
                         <li class="nav-item dropdown">
                             <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
                                 {{ Auth::user()->name }}
+                                {!! current_user()->isSuperAdmin() ? '<br><small class="">Super Admin</small>' : '' !!}
                             </a>
 
                             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
@@ -54,7 +56,11 @@
 
         <main class="py-4">
             <div class="container">
-                <h1 class="h1">@yield('page_title')</h1>
+                <div class="d-flex justify-content-between">
+                    <h1 class="h1">@yield('page_title')</h1>
+                    <div>@yield('page_actions')</div>
+                </div>
+
                 <hr class="mb-5" />
 
                 @include('dashboard.errors')

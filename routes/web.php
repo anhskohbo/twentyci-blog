@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BlogController;
 use App\Http\Controllers\Dashboard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -21,15 +22,10 @@ Auth::routes();
 Route::group(
     ['middleware' => 'auth', 'prefix' => 'dashboard', 'as' => 'dashboard.'],
     function (Router $routes) {
+        $routes->get('/', Dashboard\DashboardController::class)->name('dashboard');
         $routes->resource('posts', Dashboard\PostsController::class);
     }
 );
 
-Route::get(
-    '/',
-    function () {
-        return view('welcome');
-    }
-);
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/{post:slug}', [BlogController::class, 'post'])->name('post');
+Route::get('/', [BlogController::class, 'home'])->name('home');

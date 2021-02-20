@@ -4,10 +4,15 @@ namespace App\Models;
 
 use App\Helpers\Traits\HasOptionsAttribute;
 use App\Helpers\Traits\Sluggable;
+use Exception;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\HtmlString;
+use Parsedown;
 
 /**
  * @mixin \Eloquent
@@ -17,6 +22,9 @@ class Post extends Model
     use HasFactory;
     use Sluggable;
     use HasOptionsAttribute;
+
+    public const STATUS_PUBLISH = 'publish';
+    public const STATUS_DRAFT = 'draft';
 
     /**
      * The table associated with the model.
@@ -32,6 +40,7 @@ class Post extends Model
         'title',
         'description',
         'content',
+        'content_filtered',
     ];
 
     /**
@@ -74,6 +83,14 @@ class Post extends Model
                 }
             }
         );
+
+        static::saving(
+            function (self $post) {
+                if ($post->isDirty('content')) {
+                    $post->content_filtered = self::parseContent($post->content);
+                }
+            }
+        );
     }
 
     /**
@@ -103,5 +120,71 @@ class Post extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * @return HtmlString|string
+     */
+    public function getContent()
+    {
+        if (!$this->content) {
+            return '';
+        }
+
+        if ($this->content_filtered) {
+            return new HtmlString($this->content_filtered);
+        }
+
+        try {
+            $content = self::parseContent($this->content);
+
+            $this->timestamps = false;
+            $this->update(['content_filtered' => $content]);
+            $this->timestamps = true;
+
+            return new HtmlString($content);
+        } catch (Exception $e) {
+            return '';
+        }
+    }
+
+    /**
+     * @param string $content
+     * @return string|null
+     */
+    public static function parseContent(string $content): ?string
+    {
+        $parsedown = new Parsedown();
+
+        $parsedown->setSafeMode(true);
+        $parsedown->setMarkupEscaped(true);
+
+        try {
+            return $parsedown->text($content);
+        } catch (Exception $e) {
+            return '';
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    public function isPublished(): bool
+    {
+        return $this->published_at === null || $this->published_at > Carbon::now();
+    }
+
+    /**
+     * @param Builder $query
+     * @return Builder
+     */
+    public function scopePublished(Builder $query): Builder
+    {
+        return $query->where(
+            function (Builder $builder) {
+                $builder->whereNull('published_at');
+                $builder->orWhereDate('published_at', '>=', Carbon::now()->format('Y-m-d H:i:s'));
+            }
+        );
     }
 }

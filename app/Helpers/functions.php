@@ -13,61 +13,102 @@ function current_user()
 }
 
 /**
- * Generate a dashboard url.
+ * Retrieves a modified URL query string.
  *
- * @param string|null $path
- * @param mixed $parameters
- * @param bool|null $secure
- * @return \Illuminate\Contracts\Routing\UrlGenerator|string
+ * @param string|array $key Either a query variable key, or an associative array of query variables.
+ * @param string $value Optional. Either a query variable value, or a URL to act upon.
+ * @param string $url Optional. A URL to act upon.
+ * @return string
  */
-function dashboard_url($path = null, $parameters = [], $secure = null)
+function add_query_arg(...$args)
 {
-    return url('dashboard/' . ltrim($path, '/'), $parameters, $secure);
+    if (is_array($args[0])) {
+        if (count($args) < 2 || false === $args[1]) {
+            $uri = $_SERVER['REQUEST_URI'];
+        } else {
+            $uri = $args[1];
+        }
+    } elseif (count($args) < 3 || false === $args[2]) {
+        $uri = $_SERVER['REQUEST_URI'];
+    } else {
+        $uri = $args[2];
+    }
+
+    $frag = strstr($uri, '#');
+    if ($frag) {
+        $uri = substr($uri, 0, -strlen($frag));
+    } else {
+        $frag = '';
+    }
+
+    if (0 === stripos($uri, 'http://')) {
+        $protocol = 'http://';
+        $uri = substr($uri, 7);
+    } elseif (0 === stripos($uri, 'https://')) {
+        $protocol = 'https://';
+        $uri = substr($uri, 8);
+    } else {
+        $protocol = '';
+    }
+
+    if (strpos($uri, '?') !== false) {
+        [$base, $query] = explode('?', $uri, 2);
+        $base .= '?';
+    } elseif ($protocol || strpos($uri, '=') === false) {
+        $base = $uri . '?';
+        $query = '';
+    } else {
+        $base = '';
+        $query = $uri;
+    }
+
+    parse_str($query, $qs);
+    $qs = map_deep($qs, 'urlencode'); // This re-URL-encodes things that were already in the query string.
+
+    if (is_array($args[0])) {
+        foreach ($args[0] as $k => $v) {
+            $qs[$k] = $v;
+        }
+    } else {
+        $qs[$args[0]] = $args[1];
+    }
+
+    foreach ($qs as $k => $v) {
+        if (false === $v) {
+            unset($qs[$k]);
+        }
+    }
+
+    $ret = http_build_query($qs);
+    $ret = trim($ret, '?');
+    $ret = preg_replace('#=(&|$)#', '$1', $ret);
+    $ret = $protocol . $base . $ret . $frag;
+    $ret = rtrim($ret, '?');
+
+    return $ret;
 }
 
 /**
- * Determine if the given request is intended for Dashboard.
- *
- * @param \Illuminate\Http\Request $request
- * @return bool
+ * @param array|object $value
+ * @param callable $callback
+ * @return array|false|mixed
  */
-function is_dashboard_request($request)
+function map_deep($value, $callback)
 {
-    $path = '/dashboard';
-
-    return $request->is($path) ||
-           $request->is(trim($path . '/*', '/')) ||
-           $request->is('dashboard-api/*');
-}
-
-if (!function_exists('absint')) {
-    /**
-     * Convert a value to non-negative integer.
-     *
-     * @param int|mixed $maybeint
-     * @return int
-     */
-    function absint($maybeint)
-    {
-        return abs((int)$maybeint);
-    }
-}
-
-if (!function_exists('parse_ids')) {
-    /**
-     * Clean up an array, comma- or space-separated list of IDs.
-     *
-     * @param mixed $list
-     * @return array
-     */
-    function parse_ids($list)
-    {
-        if (!is_array($list)) {
-            $list = preg_split('/[\s,]+/', $list, -1, PREG_SPLIT_NO_EMPTY);
+    if (is_array($value)) {
+        foreach ($value as $index => $item) {
+            $value[$index] = map_deep($item, $callback);
         }
-
-        return array_unique(array_map('absint', $list));
+    } elseif (is_object($value)) {
+        $object_vars = get_object_vars($value);
+        foreach ($object_vars as $property_name => $property_value) {
+            $value->$property_name = map_deep($property_value, $callback);
+        }
+    } else {
+        $value = call_user_func($callback, $value);
     }
+
+    return $value;
 }
 
 /**

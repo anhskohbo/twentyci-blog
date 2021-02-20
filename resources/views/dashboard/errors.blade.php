@@ -10,3 +10,9 @@
         </ul>
     </div>
 @endif
+
+@if($success = session()->get('success'))
+    <div class="alert alert-success">
+        <p style="margin-bottom: 0;">{{ $success }}</p>
+    </div>
+@endif

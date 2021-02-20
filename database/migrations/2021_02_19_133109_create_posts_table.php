@@ -21,7 +21,7 @@ class CreatePostsTable extends Migration
                 $table->string('title');
                 $table->string('slug')->unique();
                 $table->text('description')->nullable();
-                $table->mediumText('content');
+                $table->longText('content');
                 $table->timestamp('published_at')->nullable();
                 $table->jsonb('options')->nullable();
                 $table->timestamps();

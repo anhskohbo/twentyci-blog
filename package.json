@@ -13,6 +13,7 @@
     "@toast-ui/editor": "^2.5.1",
     "axios": "^0.21",
     "bootstrap": "^4.6.0",
+    "flatpickr": "^4.6.9",
     "jquery": "^3.5",
     "popper.js": "^1.12"
   },

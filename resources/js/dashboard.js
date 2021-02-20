@@ -1,10 +1,13 @@
 import Editor from '@toast-ui/editor';
+import flatpickr from 'flatpickr';
 
 import './bootstrap';
 import { domReady } from './utils/dom';
+import { SwalConfirm } from './utils/sweetalert';
 
 import 'codemirror/lib/codemirror.css';
 import '@toast-ui/editor/dist/toastui-editor.css';
+import 'flatpickr/dist/flatpickr.min.css';
 
 function initPostEdit() {
   let editorElement = document.getElementById('editor');
@@ -32,6 +35,29 @@ function initPostEdit() {
   }
 }
 
+function initDeleteAction() {
+  $(document).on('click', '.delete-action', async (e) => {
+    e.preventDefault();
+
+    let action = $(e.currentTarget).data('action');
+    let csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+    let { isConfirmed } = await SwalConfirm();
+
+    if (isConfirmed) {
+      const template = `
+        <form action="${action}" method="POST" style="display: none">
+           <input type="hidden" name="_method" value="DELETE" />
+           <input type="hidden" name="_token" value="${csrfToken}" />
+        </form>
+      `;
+
+      const form = $(template).appendTo('body');
+      form.submit();
+    }
+  });
+}
+
 domReady(() => {
   const container = document.getElementById('page-wrapper');
   if (!container) {
@@ -45,4 +71,13 @@ domReady(() => {
       initPostEdit();
       break;
   }
+
+  initDeleteAction();
+
+  flatpickr('input[data-init="flatpickr"]', {
+    enableTime: false,
+    allowInput: false,
+    dateFormat: 'Y-m-d',
+    disableMobile: true,
+  });
 });
