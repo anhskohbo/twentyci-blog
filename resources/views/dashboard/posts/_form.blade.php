@@ -30,6 +30,21 @@
                         </select>
                     </p>
 
+                    @if(current_user()->can('publish', $post))
+                        <p class="post-published_at">
+                            <label for="published_at">Schedule publish date</label>
+
+                            <input
+                                type="text"
+                                name="published_at"
+                                value="{{ $post->published_at ? $post->published_at->format('Y-m-d H:i') : '' }}"
+                                id="published_at"
+                                class="form-control bg-white"
+                                data-init="flatpickr-datetime"
+                            >
+                        </p>
+                    @endif
+
                     @if($post->id && current_user()->can('delete', $post))
                         <button
                             type="button"
@@ -45,3 +60,18 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        function postPublishedAtVisible() {
+            if ($('#status').val() === 'publish') {
+                $('.post-published_at').slideDown(200);
+            } else {
+                $('.post-published_at').slideUp(200);
+            }
+        }
+
+        postPublishedAtVisible();
+        $('#status').on('change', postPublishedAtVisible);
+    });
+</script>

@@ -41,6 +41,7 @@ class Post extends Model
         'description',
         'content',
         'content_filtered',
+        'published_at',
     ];
 
     /**
@@ -171,7 +172,7 @@ class Post extends Model
      */
     public function isPublished(): bool
     {
-        return $this->published_at === null || $this->published_at > Carbon::now();
+        return $this->published_at === null || $this->published_at <= Carbon::now();
     }
 
     /**
@@ -183,7 +184,21 @@ class Post extends Model
         return $query->where(
             function (Builder $builder) {
                 $builder->whereNull('published_at');
-                $builder->orWhereDate('published_at', '>=', Carbon::now()->format('Y-m-d H:i:s'));
+                $builder->orWhere('published_at', '<=', Carbon::now()->format('Y-m-d H:i:s'));
+            }
+        );
+    }
+
+    /**
+     * @param Builder $query
+     * @return Builder
+     */
+    public function scopeUnPublished(Builder $query): Builder
+    {
+        return $query->where(
+            function (Builder $builder) {
+                $builder->whereNotNull('published_at');
+                $builder->where('published_at', '>', Carbon::now()->format('Y-m-d H:i:s'));
             }
         );
     }

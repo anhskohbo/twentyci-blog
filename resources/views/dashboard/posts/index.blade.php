@@ -55,7 +55,8 @@
                                 id="filter_created_at"
                                 class="form-control bg-white"
                                 data-init="flatpickr"
-                                style="width: 150px;">
+                                style="width: 150px;"
+                            >
                         </div>
 
                         <div class="ml-2">

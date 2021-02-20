@@ -21,7 +21,7 @@
 
 [x] Admin could filter/order posts by date or status
 
-[] Admin could schedule post publishing. E.g найти работу I want publish this post automatically in tomorrow 9AM
+[x] Admin could schedule post publishing. E.g найти работу I want publish this post automatically in tomorrow 9AM
 
 
 ## Very Very Very Optional features

@@ -80,4 +80,11 @@ domReady(() => {
     dateFormat: 'Y-m-d',
     disableMobile: true,
   });
+
+  flatpickr('input[data-init="flatpickr-datetime"]', {
+    dateFormat: 'Y-m-d H:i',
+    enableTime: true,
+    allowInput: false,
+    disableMobile: true,
+  });
 });

@@ -97,6 +97,7 @@ class PostsController extends Controller
                 'title' => 'required|max:255',
                 'content' => 'required',
                 'status' => 'required',
+                'published_at' => 'nullable|date',
             ]
         );
 
@@ -105,6 +106,10 @@ class PostsController extends Controller
         $post->status = ($values['status'] === 'publish' && current_user()->can('publish', $post))
             ? Post::STATUS_PUBLISH
             : Post::STATUS_DRAFT;
+
+        if (current_user()->can('publish', $post)) {
+            $post->published_at = $values['published_at'] ?? null;
+        }
 
         $post->saveOrFail();
 
@@ -153,6 +158,7 @@ class PostsController extends Controller
                 'title' => 'required|max:255',
                 'content' => 'required',
                 'status' => 'required',
+                'published_at' => 'nullable|date',
             ]
         );
 
@@ -161,6 +167,10 @@ class PostsController extends Controller
         $post->status = ($values['status'] === 'publish' && current_user()->can('publish', $post))
             ? Post::STATUS_PUBLISH
             : Post::STATUS_DRAFT;
+
+        if (current_user()->can('publish', $post)) {
+            $post->published_at = $values['published_at'] ?? null;
+        }
 
         $post->saveOrFail();
 
