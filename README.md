@@ -1,3 +1,32 @@
+## Blog TEST
+
+## Installation
+
+Use docker, following this instruction: https://laravel.com/docs/8.x/sail
+
+Install depencencies.
+
+```
+$ composer install
+```
+
+## Setup
+
+After setup complete, you should config the `.env` file matching with your system.
+
+Run database migrate:
+
+```
+$ php artisan migrate
+```
+
+Create an admin account:
+
+```
+$ php artisan user:create
+```
+
+That's it. Happy review.
 
 ## Core features
 
@@ -26,6 +55,6 @@
 
 ## Very Very Very Optional features
 
-[x] 100% Unit Tested
+[x] 100% Unit Tested (but not 100%)
 
 [x] Clean commit messages
