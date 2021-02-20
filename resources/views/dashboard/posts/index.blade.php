@@ -79,6 +79,50 @@
             </div>
         </div>
 
+        @if( current_user()->isSuperAdmin() && $unPublishPosts && $unPublishPosts->isNotEmpty())
+            <h3>UnPublish Posts</h3>
+
+            <table class="table table-dark">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Title</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Author</th>
+                        <th scope="col">Publish Date</th>
+                        <th scope="col">Created</th>
+                        <th scope="col">Last Modified</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach($unPublishPosts as $post)
+                        <tr class="">
+                            <th scope="row">{{ $post->id }}</th>
+                            <td style="width: 30%">
+                                <a href="{{ route('dashboard.posts.edit', $post) }}"><strong>{{ $post->title }}</strong></a>
+
+                                <div class="mt-2" style="font-size: 13px;">
+                                    <a href="{{ route('post', $post->slug) }}">View</a>
+                                    <span style="color: #ddd" class="d-inline-block ml-1 mr-1 user-select-none">|</span>
+
+                                    <a href="{{ route('dashboard.posts.edit', $post) }}">Publish Post</a>
+                                    <span style="color: #ddd" class="d-inline-block ml-1 mr-1 user-select-none">|</span>
+
+                                    <a href="#" class="delete-action text-danger" data-action="{{ route('dashboard.posts.destroy', $post->id) }}">Delete</a>
+                                </div>
+                            </td>
+                            <td>{{ __('Unpublished') }}</td>
+                            <td>{{ $post->user->name ?? '' }}</td>
+                            <td>{{ $post->published_at ? $post->published_at->shortRelativeToNowDiffForHumans() : '' }}</td>
+                            <td>{{ $post->created_at }}</td>
+                            <td>{{ $post->updated_at }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
+
         <table class="table">
             <thead>
                 <tr>

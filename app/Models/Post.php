@@ -193,7 +193,7 @@ class Post extends Model
      * @param Builder $query
      * @return Builder
      */
-    public function scopeUnPublished(Builder $query): Builder
+    public function scopeUnPublish(Builder $query): Builder
     {
         return $query->where(
             function (Builder $builder) {

@@ -9,7 +9,6 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Arr;
 
 class PostsController extends Controller
 {
@@ -61,11 +60,27 @@ class PostsController extends Controller
             $orderings
         );
 
+        $unPublishPosts = null;
+        if (current_user()->isSuperAdmin()) {
+            $unPublishPosts = $repository
+                ->query(current_user())
+                ->unPublish()
+                ->with('user')
+                ->get();
+        }
+
+        if ($unPublishPosts && $unPublishPosts->isNotEmpty()) {
+            $query->whereNotIn('id', $unPublishPosts->pluck('id'));
+        }
+
         $posts = $query
             ->paginate()
             ->appends($request->only('term', 'filters', 'sortBy', 'sortDirection'));
 
-        return view('dashboard.posts.index', compact('posts', 'currentFilters', 'orderings'));
+        return view(
+            'dashboard.posts.index',
+            compact('posts', 'currentFilters', 'orderings', 'unPublishPosts')
+        );
     }
 
     /**

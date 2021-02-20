@@ -17,7 +17,7 @@
 
 [x] Only published posts would be display in public listing page
 
-[] Admin could see highlighting unpublished posts in list of all posts
+[x] Admin could see highlighting unpublished posts in list of all posts
 
 [x] Admin could filter/order posts by date or status
 
